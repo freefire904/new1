@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic PDF Flipbook</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+
+<div id="flipbook-container">
+    <div id="book">
+        <div class="page" id="left-page">
+            <canvas id="canvas-left"></canvas>
+        </div>
+        <div class="page turnable" id="right-page">
+            <canvas id="canvas-right"></canvas>
+        </div>
+    </div>
+    <!-- Page Numbers Section -->
+    <div id="page-numbers">
+        <span id="left-page-num"></span> - <span id="right-page-num"></span>
+    </div>
+</div>
+
+<div class="controls">
+    <button id="prev">Previous</button>
+    <button id="next">Next</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
