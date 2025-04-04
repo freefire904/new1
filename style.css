@@ -1,5 +1,5 @@
 /* style.css */
-* {
+* { clip-path: path('M0,40 Q150,0 300,40 L300,360 Q150,330 0,360 Z');
     margin: 0;
     padding: 0;
     box-sizing: border-box;
