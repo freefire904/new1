@@ -1,34 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realistic PDF Flipbook</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF Flipbook</title>
+
+  <style>
+    body {
+      background: #eaeaea;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    #flipbook {
+      width: 800px;
+      height: 600px;
+    }
+
+    #flipbook .page, #flipbook .hard {
+      width: 400px;
+      height: 600px;
+    }
+
+    .page {
+      background: white;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .hard {
+      background: #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #222;
+      text-align: center;
+      flex-direction: column;
+    }
+
+    .hard small {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+  </style>
+
+  <!-- ✅ Local Scripts -->
+  <script src="jquery.js"></script>
+  <script src="turn.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+  // Set the worker source after loading pdf.min.js
+</script>
+
 </head>
 <body>
 
-<div id="flipbook-container">
-    <div id="book">
-        <div class="page" id="left-page">
-            <canvas id="canvas-left"></canvas>
-        </div>
-        <div class="page turnable" id="right-page">
-            <canvas id="canvas-right"></canvas>
-        </div>
-    </div>
-    <!-- Page Numbers Section -->
-    <div id="page-numbers">
-        <span id="left-page-num"></span> - <span id="right-page-num"></span>
-    </div>
-</div>
+  <h2>PDF Flipbook Viewer</h2>
 
-<div class="controls">
-    <button id="prev">Previous</button>
-    <button id="next">Next</button>
-</div>
+  <div id="flipbook">
+    <div class="hard">My PDF<br><small>~ FlipMagic</small></div>
+    <div class="hard"></div>
+    <!-- PDF pages will be inserted here -->
+    <div class="hard">Thank You<br><small>~ FlipMagic</small></div>
+    <div class="hard"></div>
+  </div>
 
-<script src="script.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+    const pdfUrl = 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf';
+
+    async function renderPDF() {
+      try {
+        const loadingTask = pdfjsLib.getDocument('./Second.pdf');
+        const pdf = await loadingTask.promise;
+        const totalPages = pdf.numPages;
+        const $flipbook = $('#flipbook');
+
+        const pagePromises = [];
+
+        for (let i = 1; i <= totalPages; i++) {
+          pagePromises.push(renderPage(pdf, i));
+        }
+
+        const renderedPages = await Promise.all(pagePromises);
+        const $endCover = $flipbook.children().last().prev();
+
+        renderedPages.forEach($page => {
+          $endCover.before($page);
+        });
+
+        if ($flipbook.children().length % 2 !== 0) {
+          $endCover.before('<div class="page"></div>');
+        }
+
+        // ✅ Initialize turn.js AFTER pages are added
+        $('#flipbook').turn();
+
+      } catch (err) {
+        console.error("Error loading PDF: ", err);
+        alert("Failed to load PDF. Make sure the URL is correct and accessible.");
+      }
+    }
+
+    async function renderPage(pdf, pageNumber) {
+      const page = await pdf.getPage(pageNumber);
+      const scale = 1.5;
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: context, viewport }).promise;
+
+      const $pageDiv = $('<div class="page"></div>');
+      $pageDiv.append(canvas);
+      return $pageDiv;
+    }
+
+    $(document).ready(() => {
+      renderPDF();
+    });
+  </script>
+
 </body>
 </html>
+
