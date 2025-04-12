@@ -36,6 +36,14 @@
       transition: all 0.3s ease-in-out;
     }
 
+    .container-title {
+      width: 100%;
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
     .card {
       flex: 1 1 250px;
       max-width: 320px;
@@ -79,6 +87,11 @@
       .center-wrapper {
         padding: 5vw;
         gap: 20px;
+      }
+
+      .container-title {
+        font-size: 1.6rem;
+        margin-bottom: 15px;
       }
 
       .card {
@@ -152,6 +165,10 @@
       .card p {
         font-size: 1.1rem;
       }
+
+      .container-title {
+        font-size: 2.5rem;
+      }
     }
 
   </style>
@@ -159,6 +176,8 @@
 <body>
 
   <div class="center-wrapper">
+    <h1 class="container-title">Welcome to Our Features</h1>
+
     <div class="card">
       <h3>Design</h3>
       <p>Modern, scalable and elegant visual components.</p>
