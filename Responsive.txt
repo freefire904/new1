@@ -248,3 +248,175 @@ $(document).ready(function () {
 });
 
 
+
+.............................................................
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF Flipbook</title>
+  <script src="jquery.js"></script>
+  <script src="turn.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+
+  <div id="flipbook">
+    <div class="hard"></div>
+    <div class="hard"></div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const pdfUrl = "Movie.pdf";  // Replace with correct path to your PDF
+      let totalPages = 0;
+      let pagesLoaded = {};
+
+      async function renderPDF() {
+        try {
+          const loadingTask = pdfjsLib.getDocument(pdfUrl);
+          const pdf = await loadingTask.promise;
+          totalPages = pdf.numPages;
+
+          const $flipbook = $('#flipbook');
+
+          $(document).ready(function () {
+            $flipbook.turn({
+              autoCenter: true,
+              when: {
+                turning: function (event, page, view) {
+                  loadPages(page);
+                }
+              }
+            });
+
+            resizeFlipbook();
+
+            $(window).on("resize", function () {
+              resizeFlipbook();
+            });
+          });
+
+          function resizeFlipbook() {
+            var container = $("#flipbook");
+            var width = $(window).width();
+            var height = $(window).height();
+
+            // Set a base width and scale it down for smaller screens
+            var bookWidth = Math.min(1400, width * 0.9);
+            var bookHeight = bookWidth / 1.80; // Maintain 2:1 ratio
+
+            container.turn("size", bookWidth, bookHeight);
+          }
+
+          function loadPage(pageNumber) {
+            if (!pagesLoaded[pageNumber]) {
+              renderPage(pdf, pageNumber).then($page => {
+                $("#flipbook").turn("addPage", $page[0], pageNumber);
+                pagesLoaded[pageNumber] = true;
+              });
+            }
+          }
+
+          function loadPages(page) {
+            // Lazy load the current page and its neighbors
+            if (!pagesLoaded[page]) loadPage(page);
+            if (page > 1 && !pagesLoaded[page - 1]) loadPage(page - 1); // load previous
+            if (page < totalPages && !pagesLoaded[page + 1]) loadPage(page + 1); // load next
+          }
+
+          async function renderPage(pdf, pageNumber) {
+            const page = await pdf.getPage(pageNumber);
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({ canvasContext: context, viewport }).promise;
+
+            const $pageDiv = $('<div class="page"></div>');
+            $pageDiv.append(canvas);
+            return $pageDiv;
+          }
+
+          // Initially load the first two pages
+          loadPages(1);  // Load the first page
+          loadPages(2);  // Load the second page as well
+
+        } catch (err) {
+          console.error("Error loading PDF: ", err);
+          alert("Failed to load PDF. Make sure the URL is correct and accessible.");
+        }
+      }
+
+      renderPDF();
+    });
+  </script>
+
+  <style>
+    body {
+      background: #080143;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    #flipbook {
+      margin-top: 25px;
+    }
+
+    .page {
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page canvas {
+      max-width: 100%;
+      max-height: 100%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hard {
+      background-color: rgb(89, 90, 91);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #222;
+      text-align: center;
+      flex-direction: column;
+      pointer-events: none;
+      display: none;
+    }
+
+    .page-wrapper {
+      box-shadow: -5px 3px 30px rgba(8, 1, 71, 0.3);
+    }
+
+    @media (max-width: 2560px) {
+      #flipbook .page, #flipbook .hard {
+        width: 1200px;
+        height: 800px;
+      }
+    }
+  </style>
+
+</body>
+</html>
+
